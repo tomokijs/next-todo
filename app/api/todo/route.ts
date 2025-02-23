@@ -1,11 +1,17 @@
 import { PrismaClient } from '@prisma/client'
 import { NextResponse } from 'next/server'
 
-const prisma = new PrismaClient()
+const globalForPrisma = globalThis as unknown as {
+  prisma: PrismaClient | undefined
+}
+
+const prisma = globalForPrisma.prisma ?? new PrismaClient()
+
+if (process.env.NODE_ENV !== 'production') globalForPrisma.prisma = prisma
 
 export const connect = async () => {
   try {
-    prisma.$connect()
+    await prisma.$connect()
   } catch (error) {
     console.error(error)
     return Error('DB接続失敗しました')
