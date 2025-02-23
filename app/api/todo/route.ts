@@ -13,8 +13,8 @@ const connect = async () => {
   try {
     await prisma.$connect()
   } catch (error) {
-    console.error(error)
-    return Error('DB接続失敗しました')
+    console.error('Database connection error:', error)
+    throw error
   }
 }
 
@@ -22,13 +22,37 @@ export const GET = async () => {
   try {
     await connect()
     const todos = await prisma.todo.findMany()
-
     return NextResponse.json({ todos }, { status: 200 })
   } catch (error) {
-    console.error(error)
-    return NextResponse.json({ messeage: 'Error' }, { status: 500 })
+    console.error('GET request error:', error)
+    return NextResponse.json(
+      { message: 'データベースに接続できません' },
+      { status: 500 }
+    )
   } finally {
-    //必ず実行する
+    await prisma.$disconnect()
+  }
+}
+
+export const POST = async (request: Request) => {
+  try {
+    const { title } = await request.json()
+    await connect()
+
+    const todo = await prisma.todo.create({
+      data: {
+        title,
+      },
+    })
+
+    return NextResponse.json({ todo }, { status: 201 })
+  } catch (error) {
+    console.error(error)
+    return NextResponse.json(
+      { message: 'Error creating todo' },
+      { status: 500 }
+    )
+  } finally {
     await prisma.$disconnect()
   }
 }
