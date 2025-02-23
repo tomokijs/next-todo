@@ -59,6 +59,37 @@ export default function TodoList() {
     }
   }
 
+  const toggleTodo = async (id: number) => {
+    try {
+      const todo = todos.find((t) => t.id === id)
+      const response = await fetch(`/api/todo/${id}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ done: !todo?.done }),
+      })
+
+      if (!response.ok) throw new Error('Update failed')
+      fetchTodos()
+    } catch (err) {
+      console.error('Failed to toggle todo:', err)
+      setError('TODOの更新に失敗しました')
+    }
+  }
+
+  const deleteTodo = async (id: number) => {
+    try {
+      const response = await fetch(`/api/todo/${id}`, {
+        method: 'DELETE',
+      })
+
+      if (!response.ok) throw new Error('Delete failed')
+      fetchTodos()
+    } catch (err) {
+      console.error('Failed to delete todo:', err)
+      setError('TODOの削除に失敗しました')
+    }
+  }
+
   const formatDate = (date: Date | string) => {
     try {
       return new Date(date).toLocaleDateString('ja-JP', {
@@ -106,10 +137,28 @@ export default function TodoList() {
             key={todo.id}
             className="flex items-center justify-between p-3 bg-gray-50 rounded-lg dark:bg-gray-700"
           >
-            <span>{todo.title}</span>
-            <span className="text-sm text-gray-500 dark:text-gray-400">
-              {formatDate(todo.date)}
-            </span>
+            <div className="flex items-center gap-3">
+              <input
+                type="checkbox"
+                checked={todo.done}
+                onChange={() => toggleTodo(todo.id)}
+                className="w-5 h-5 rounded border-gray-300"
+              />
+              <span className={todo.done ? 'line-through text-gray-500' : ''}>
+                {todo.title}
+              </span>
+            </div>
+            <div className="flex items-center gap-3">
+              <span className="text-sm text-gray-500 dark:text-gray-400">
+                {formatDate(todo.date)}
+              </span>
+              <button
+                onClick={() => deleteTodo(todo.id)}
+                className="text-red-500 hover:text-red-700 px-2"
+              >
+                ×
+              </button>
+            </div>
           </li>
         ))}
       </ul>

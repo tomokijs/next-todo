@@ -21,7 +21,11 @@ const connect = async () => {
 export const GET = async () => {
   try {
     await connect()
-    const todos = await prisma.todo.findMany()
+    const todos = await prisma.todo.findMany({
+      orderBy: {
+        date: 'desc',
+      },
+    })
     return NextResponse.json({ todos }, { status: 200 })
   } catch (error) {
     console.error('GET request error:', error)
